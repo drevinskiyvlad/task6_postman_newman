@@ -1,16 +1,16 @@
 {
 	"info": {
-		"_postman_id": "67d91bc7-aa8b-4727-aad5-9abcb298ed08",
-		"name": "store",
+		"_postman_id": "7e349792-6b55-4363-baf8-0c6138476699",
+		"name": "store Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "18317683"
+		"_exporter_id": "31363268"
 	},
 	"item": [
 		{
 			"name": "Products",
 			"item": [
 				{
-					"name": "List products",
+					"name": "Create product",
 					"event": [
 						{
 							"listen": "test",
@@ -19,52 +19,37 @@
 									"pm.test(\"Response time is less than 200ms\", function () {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
+									"\r",
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
 									"});\r",
-									"pm.test(\"Content-Type is present\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"});"
+									"\r",
+									"pm.test(\"Product is valid according to schema\", function () {\r",
+									"    const schema = {\r",
+									"        \"type\": \"object\",\r",
+									"        \"properties\": {\r",
+									"            \"id\": { \"type\": \"integer\" },\r",
+									"            \"name\": { \"type\": \"string\" },\r",
+									"            \"price\": { \"type\": \"integer\" },\r",
+									"            \"sku\": { \"type\": \"integer\" },\r",
+									"            \"description\": { \"type\": \"string\" }\r",
+									"        },\r",
+									"        \"required\": [\"id\", \"name\", \"price\", \"sku\", \"description\"]\r",
+									"    }\r",
+									"\r",
+									"    pm.collectionVariables.set(\"productSchema\", JSON.stringify(schema));\r",
+									"\r",
+									"    const response = pm.response.json();\r",
+									"\r",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;\r",
+									"});\r",
+									"\r",
+									""
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/products",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"products"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get product by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/products/3",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"products",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create product",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -90,7 +75,373 @@
 					"response": []
 				},
 				{
+					"name": "List products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const numberOfItems = pm.response.json().length;\r",
+									"pm.collectionVariables.set(\"numberOfProducts\", numberOfItems);\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response is an array with at least one element\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const productSchemaString = pm.collectionVariables.get(\"productSchema\");\r",
+									"    const schema = JSON.parse(productSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (product) {\r",
+									"        pm.expect(tv4.validate(product, schema)).to.be.true;\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product by ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomNumber(max) {\r",
+									"    return Math.floor(Math.random() * (max)) + 1;\r",
+									"}\r",
+									"\r",
+									"const numberOfProducts = pm.collectionVariables.get(\"numberOfProducts\");\r",
+									"const randomProduct = generateRandomNumber(numberOfProducts);\r",
+									"\r",
+									"pm.variables.set(\"randomProduct\", randomProduct);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Product is valid according to the schema\", function () {\r",
+									"    const productSchemaString = pm.collectionVariables.get(\"productSchema\");\r",
+									"    const schema = JSON.parse(productSchemaString);\r",
+									"    const response = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products/{{randomProduct}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products",
+								"{{randomProduct}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Products pagination",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomNumber(max) {\r",
+									"    return Math.floor(Math.random() * (max)) + 1;\r",
+									"}\r",
+									"\r",
+									"const numberOfProducts = pm.collectionVariables.get(\"numberOfProducts\");\r",
+									"const randomNumber = generateRandomNumber(numberOfProducts);\r",
+									"\r",
+									"pm.variables.set(\"pageSize\", randomNumber);\r",
+									"pm.variables.set(\"page\", 1);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const baseURL = pm.variables.get(\"baseUrl\");\r",
+									"const pageSize = pm.variables.get(\"pageSize\");\r",
+									"const numberOfProducts = pm.collectionVariables.get(\"numberOfProducts\");\r",
+									"const lastPage = Math.ceil(numberOfProducts / pageSize);\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms on the first page\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200 on the first page\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Number of products in the first page same as page size\", function () {\r",
+									"    const numberOfItems = pm.response.json().length;\r",
+									"\r",
+									"    pm.expect(numberOfItems).to.equal(pageSize);\r",
+									"});\r",
+									"\r",
+									"//change page to last page\r",
+									"pm.sendRequest({\r",
+									"    url: baseURL + '/products?page=' + lastPage + '&pageSize=' + pageSize,\r",
+									"    method: 'GET',\r",
+									"}, function (err, res) {\r",
+									"\r",
+									"    pm.test(\"Response time is less than 200ms on the last page\", function () {\r",
+									"        pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Status code is 200 on the last page\", function () {\r",
+									"        pm.response.to.have.status(200);\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Number of products in the last page same as expected\", function () {\r",
+									"        const numberOfItems = res.json().length;\r",
+									"\r",
+									"        let expectedNumberOfItems = 0;\r",
+									"        \r",
+									"        if (numberOfProducts % pageSize != 0)\r",
+									"            expectedNumberOfItems = numberOfProducts % pageSize;\r",
+									"        else\r",
+									"            expectedNumberOfItems = Math.ceil(numberOfProducts / lastPage);\r",
+									"\r",
+									"        pm.expect(numberOfItems).to.equal(expectedNumberOfItems);\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products?page={{page}}&pageSize={{pageSize}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "{{page}}"
+								},
+								{
+									"key": "pageSize",
+									"value": "{{pageSize}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sorting products by id ASC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const productSchemaString = pm.collectionVariables.get(\"productSchema\");\r",
+									"    const schema = JSON.parse(productSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (product) {\r",
+									"        pm.expect(tv4.validate(product, schema)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response array is sorted in ascending order by id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    let sortedArray = [...responseData];\r",
+									"    sortedArray.sort((a, b) => {\r",
+									"        return a.id - b.id;\r",
+									"    });\r",
+									"\r",
+									"    pm.expect(responseData).to.deep.equal(sortedArray);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products?sortOrder=ASC&sortKey=id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "ASC"
+								},
+								{
+									"key": "sortKey",
+									"value": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sorting products by id DESC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const productSchemaString = pm.collectionVariables.get(\"productSchema\");\r",
+									"    const schema = JSON.parse(productSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (product) {\r",
+									"        pm.expect(tv4.validate(product, schema)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response array is sorted in descending order by id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    let sortedArray = [...responseData];\r",
+									"    sortedArray.sort((a, b) => {\r",
+									"        return b.id - a.id;\r",
+									"    });\r",
+									"\r",
+									"    pm.expect(responseData).to.deep.equal(sortedArray);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products?sortOrder=DESC&sortKey=id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "DESC"
+								},
+								{
+									"key": "sortKey",
+									"value": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Product is valid according to schema\", function () {",
+									"    const productSchemaString = pm.collectionVariables.get(\"productSchema\");",
+									"    const schema = JSON.parse(productSchemaString);",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -117,17 +468,57 @@
 				},
 				{
 					"name": "Remove product by ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numberOfProducts = pm.variables.get(\"numberOfProducts\");\r",
+									"\r",
+									"pm.variables.set(\"lastProduct\", numberOfProducts);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const baseURL = pm.variables.get('baseUrl');\r",
+									"const productID = pm.variables.get('lastProduct');\r",
+									"\r",
+									"pm.test('Status code is 200', function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Deleted product with correct id\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(productID);\r",
+									"});\r",
+									"\r",
+									"pm.sendRequest({\r",
+									"    url: baseURL + '/products/' + productID,\r",
+									"    method: 'GET'\r",
+									"}, function (err, res) {\r",
+									"    pm.test('Status code is 404 after deleting', function () {\r",
+									"        pm.expect(res).to.have.status(404);\r",
+									"    });\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/products/4",
+							"raw": "{{baseUrl}}/products/{{lastProduct}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"products",
-								"4"
+								"{{lastProduct}}"
 							]
 						}
 					},
@@ -139,42 +530,44 @@
 			"name": "Orders",
 			"item": [
 				{
-					"name": "List orders",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/orders",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"orders"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get order by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/orders/3",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"orders",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Create order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(201);",
+									"});",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Order is valid according to schema\", function () {",
+									"    const schema = {",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"name\": { \"type\": \"string\" },",
+									"            \"sku\": { \"type\": \"integer\" },",
+									"            \"id\": { \"type\": \"integer\" }",
+									"        },",
+									"        \"required\": [\"name\", \"sku\", \"id\"]",
+									"    }",
+									"",
+									"    pm.collectionVariables.set(\"orderSchema\", JSON.stringify(schema));",
+									"",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -200,7 +593,373 @@
 					"response": []
 				},
 				{
+					"name": "List orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const numberOfItems = pm.response.json().length;",
+									"pm.collectionVariables.set(\"numberOfOrders\", numberOfItems);",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array with at least one element\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"});",
+									"",
+									"pm.test(\"Each element is valid according to the schema\", function () {",
+									"    const orderSchemaString = pm.collectionVariables.get(\"orderSchema\");",
+									"    const schema = JSON.parse(orderSchemaString);",
+									"",
+									"    pm.response.json().forEach(function (order) {",
+									"        pm.expect(tv4.validate(order, schema)).to.be.true;",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Order is valid according to the schema\", function () {",
+									"    const orderSchemaString = pm.collectionVariables.get(\"orderSchema\");",
+									"    const schema = JSON.parse(orderSchemaString);",
+									"    const response = pm.response.json();",
+									"    ",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomNumber(max) {\r",
+									"    return Math.floor(Math.random() * (max)) + 1;\r",
+									"}\r",
+									"\r",
+									"const numberOfOrders = pm.collectionVariables.get(\"numberOfOrders\");\r",
+									"const randomOrder = generateRandomNumber(numberOfOrders);\r",
+									"\r",
+									"pm.variables.set(\"randomOrder\", randomOrder);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/{{randomOrder}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"{{randomOrder}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Orders pagination",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomNumber(max) {\r",
+									"    return Math.floor(Math.random() * (max)) + 1;\r",
+									"}\r",
+									"\r",
+									"const numberOfOrders = pm.collectionVariables.get(\"numberOfOrders\");\r",
+									"const randomNumber = generateRandomNumber(numberOfOrders);\r",
+									"\r",
+									"pm.variables.set(\"pageSize\", randomNumber);\r",
+									"pm.variables.set(\"page\", 1);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const baseURL = pm.variables.get(\"baseUrl\");\r",
+									"const pageSize = pm.variables.get(\"pageSize\");\r",
+									"const numberOfOrders = pm.collectionVariables.get(\"numberOfOrders\");\r",
+									"const lastPage = Math.ceil(numberOfOrders / pageSize);\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms on the first page\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200 on the first page\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Number of orders in the first page same as page size\", function () {\r",
+									"    const numberOfItems = pm.response.json().length;\r",
+									"\r",
+									"    pm.expect(numberOfItems).to.equal(pageSize);\r",
+									"});\r",
+									"\r",
+									"//change page to last page\r",
+									"pm.sendRequest({\r",
+									"    url: baseURL + '/orders?page=' + lastPage + '&pageSize=' + pageSize,\r",
+									"    method: 'GET',\r",
+									"}, function (err, res) {\r",
+									"\r",
+									"    pm.test(\"Response time is less than 200ms on the last page\", function () {\r",
+									"        pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Status code is 200 on the last page\", function () {\r",
+									"        pm.response.to.have.status(200);\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Number of orders in the last page same as expected\", function () {\r",
+									"        const numberOfItems = res.json().length;\r",
+									"\r",
+									"        let expectedNumberOfItems = 0;\r",
+									"        \r",
+									"        if (numberOfOrders % pageSize != 0)\r",
+									"            expectedNumberOfItems = numberOfOrders % pageSize;\r",
+									"        else\r",
+									"            expectedNumberOfItems = Math.ceil(numberOfOrders / lastPage);\r",
+									"\r",
+									"        pm.expect(numberOfItems).to.equal(expectedNumberOfItems);\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders?page={{page}}&pageSize={{pageSize}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "{{page}}"
+								},
+								{
+									"key": "pageSize",
+									"value": "{{pageSize}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sorting orders by id ASC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const orderSchemaString = pm.collectionVariables.get(\"orderSchema\");\r",
+									"    const schema = JSON.parse(orderSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (order) {\r",
+									"        pm.expect(tv4.validate(order, schema)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response array is sorted in ascending order by id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    let sortedArray = [...responseData];\r",
+									"    sortedArray.sort((a, b) => {\r",
+									"        return a.id - b.id;\r",
+									"    });\r",
+									"\r",
+									"    pm.expect(responseData).to.deep.equal(sortedArray);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders?sortOrder=ASC&sortKey=id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "ASC"
+								},
+								{
+									"key": "sortKey",
+									"value": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sorting orders by id DESC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const orderSchemaString = pm.collectionVariables.get(\"orderSchema\");\r",
+									"    const schema = JSON.parse(orderSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (order) {\r",
+									"        pm.expect(tv4.validate(order, schema)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response array is sorted in descending order by id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    let sortedArray = [...responseData];\r",
+									"    sortedArray.sort((a, b) => {\r",
+									"        return b.id - a.id;\r",
+									"    });\r",
+									"\r",
+									"    pm.expect(responseData).to.deep.equal(sortedArray);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders?sortOrder=DESC&sortKey=id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "DESC"
+								},
+								{
+									"key": "sortKey",
+									"value": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Order is valid according to schema\", function () {",
+									"    const orderSchemaString = pm.collectionVariables.get(\"orderSchema\");",
+									"    const schema = JSON.parse(orderSchemaString);",
+									"    const response = pm.response.json();",
+									"    ",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -227,17 +986,57 @@
 				},
 				{
 					"name": "Remove order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const baseURL = pm.variables.get('baseUrl');",
+									"const orderID = pm.variables.get('lastOrder');",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"",
+									"pm.test(\"Deleted order with correct id\", function () {",
+									"    pm.expect(pm.response.text()).to.include(orderID);",
+									"});",
+									"",
+									"pm.sendRequest({",
+									"    url: baseURL + '/products/' + orderID,",
+									"    method: 'GET'",
+									"}, function (err, res) {",
+									"    pm.test('Status code is 404 after deleting', function () {",
+									"        pm.expect(res).to.have.status(404);",
+									"    });",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numberOfOrders = pm.variables.get(\"numberOfOrders\");\r",
+									"\r",
+									"pm.variables.set(\"lastOrder\", numberOfOrders);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/orders/4",
+							"raw": "{{baseUrl}}/orders/{{lastOrder}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"orders",
-								"4"
+								"{{lastOrder}}"
 							]
 						}
 					},
@@ -249,42 +1048,48 @@
 			"name": "Users",
 			"item": [
 				{
-					"name": "List users",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/users",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"users"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get user by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/users/3",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"users",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"User is valid according to schema\", function () {",
+									"    const schema = {",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"id\": { \"type\": \"integer\" },",
+									"            \"firstName\": { \"type\": \"string\" },",
+									"            \"lastName\": { \"type\": \"string\" },",
+									"            \"email\": { \"type\": \"string\" },",
+									"            \"dateOfBirth\": { \"type\": \"string\" },",
+									"            \"emailVerified\": { \"type\": \"boolean\" },",
+									"            \"signUpDate\": { \"type\": \"string\" },",
+									"            \"status\": { \"type\": \"string\" },",
+									"            \"level\": { \"type\": \"string\" }",
+									"        },",
+									"        \"required\": [\"id\", \"firstName\", \"lastName\", \"email\", \"dateOfBirth\", \"emailVerified\", \"signUpDate\", \"status\", \"level\"]",
+									"    }",
+									"    ",
+									"    pm.collectionVariables.set(\"userSchema\", JSON.stringify(schema));",
+									"",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -310,7 +1115,373 @@
 					"response": []
 				},
 				{
+					"name": "List users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const numberOfItems = pm.response.json().length;",
+									"pm.collectionVariables.set(\"numberOfUsers\", numberOfItems);",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array with at least one element\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"});",
+									"",
+									"pm.test(\"Each element is valid according to the schema\", function () {",
+									"    const userSchemaString = pm.collectionVariables.get(\"userSchema\");",
+									"    const schema = JSON.parse(userSchemaString);",
+									"",
+									"    pm.response.json().forEach(function (user) {",
+									"        pm.expect(tv4.validate(user, schema)).to.be.true;",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"User is valid according to the schema\", function () {",
+									"    const userSchemaString = pm.collectionVariables.get(\"userSchema\");",
+									"    const schema = JSON.parse(userSchemaString);",
+									"    const response = pm.response.json();",
+									"    ",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomNumber(max) {\r",
+									"    return Math.floor(Math.random() * (max)) + 1;\r",
+									"}\r",
+									"\r",
+									"const numberOfUsers = pm.collectionVariables.get(\"numberOfUsers\");\r",
+									"const randomUser = generateRandomNumber(numberOfUsers);\r",
+									"\r",
+									"pm.variables.set(\"randomUser\", randomUser);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{randomUser}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{randomUser}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Users pagination",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomNumber(max) {\r",
+									"    return Math.floor(Math.random() * (max)) + 1;\r",
+									"}\r",
+									"\r",
+									"const numberOfUsers = pm.collectionVariables.get(\"numberOfUsers\");\r",
+									"const randomNumber = generateRandomNumber(numberOfUsers);\r",
+									"\r",
+									"pm.variables.set(\"pageSize\", randomNumber);\r",
+									"pm.variables.set(\"page\", 1);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const baseURL = pm.variables.get(\"baseUrl\");\r",
+									"const pageSize = pm.variables.get(\"pageSize\");\r",
+									"const numberOfUsers = pm.collectionVariables.get(\"numberOfUsers\");\r",
+									"const lastPage = Math.ceil(numberOfUsers / pageSize);\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms on the first page\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200 on the first page\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Number of users in the first page same as page size\", function () {\r",
+									"    const numberOfItems = pm.response.json().length;\r",
+									"\r",
+									"    pm.expect(numberOfItems).to.equal(pageSize);\r",
+									"});\r",
+									"\r",
+									"//change page to last page\r",
+									"pm.sendRequest({\r",
+									"    url: baseURL + '/users?page=' + lastPage + '&pageSize=' + pageSize,\r",
+									"    method: 'GET',\r",
+									"}, function (err, res) {\r",
+									"\r",
+									"    pm.test(\"Response time is less than 200ms on the last page\", function () {\r",
+									"        pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Status code is 200 on the last page\", function () {\r",
+									"        pm.response.to.have.status(200);\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Number of users in the last page same as expected\", function () {\r",
+									"        const numberOfItems = res.json().length;\r",
+									"\r",
+									"        let expectedNumberOfItems = 0;\r",
+									"        \r",
+									"        if (numberOfUsers % pageSize != 0)\r",
+									"            expectedNumberOfItems = numberOfUsers % pageSize;\r",
+									"        else\r",
+									"            expectedNumberOfItems = Math.ceil(numberOfUsers / lastPage);\r",
+									"\r",
+									"        pm.expect(numberOfItems).to.equal(expectedNumberOfItems);\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?page={{page}}&pageSize={{pageSize}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "{{page}}"
+								},
+								{
+									"key": "pageSize",
+									"value": "{{pageSize}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sorting users by id ASC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const userSchemaString = pm.collectionVariables.get(\"userSchema\");\r",
+									"    const schema = JSON.parse(userSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (user) {\r",
+									"        pm.expect(tv4.validate(user, schema)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response array is sorted in ascending order by id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    let sortedArray = [...responseData];\r",
+									"    sortedArray.sort((a, b) => {\r",
+									"        return a.id - b.id;\r",
+									"    });\r",
+									"\r",
+									"    pm.expect(responseData).to.deep.equal(sortedArray);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?sortOrder=ASC&sortKey=id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "ASC"
+								},
+								{
+									"key": "sortKey",
+									"value": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sorting users by id DESC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each element is valid according to the schema\", function () {\r",
+									"    const userSchemaString = pm.collectionVariables.get(\"userSchema\");\r",
+									"    const schema = JSON.parse(userSchemaString);\r",
+									"\r",
+									"    pm.response.json().forEach(function (user) {\r",
+									"        pm.expect(tv4.validate(user, schema)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response array is sorted in descending order by id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    let sortedArray = [...responseData];\r",
+									"    sortedArray.sort((a, b) => {\r",
+									"        return b.id - a.id;\r",
+									"    });\r",
+									"\r",
+									"    pm.expect(responseData).to.deep.equal(sortedArray);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?sortOrder=DESC&sortKey=id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "DESC"
+								},
+								{
+									"key": "sortKey",
+									"value": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"User is valid according to schema\", function () {",
+									"    const userSchemaString = pm.collectionVariables.get(\"userSchema\");",
+									"    const schema = JSON.parse(userSchemaString);",
+									"    const response = pm.response.json();",
+									"    ",
+									"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -337,17 +1508,57 @@
 				},
 				{
 					"name": "Remove user by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const baseURL = pm.variables.get('baseUrl');",
+									"const userID = pm.variables.get('lastUser');",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"",
+									"pm.test(\"Deleted user with correct id\", function () {",
+									"    pm.expect(pm.response.text()).to.include(userID);",
+									"});",
+									"",
+									"pm.sendRequest({",
+									"    url: baseURL + '/products/' + userID,",
+									"    method: 'GET'",
+									"}, function (err, res) {",
+									"    pm.test('Status code is 404 after deleting', function () {",
+									"        pm.expect(res).to.have.status(404);",
+									"    });",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numberOfUsers = pm.variables.get(\"numberOfUsers\");\r",
+									"\r",
+									"pm.variables.set(\"lastUser\", numberOfUsers);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/users/10",
+							"raw": "{{baseUrl}}/users/{{lastUser}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
-								"10"
+								"{{lastUser}}"
 							]
 						}
 					},
@@ -381,6 +1592,30 @@
 			"key": "baseUrl",
 			"value": "http://localhost:3000",
 			"type": "string"
+		},
+		{
+			"key": "numberOfProducts",
+			"value": ""
+		},
+		{
+			"key": "productSchema",
+			"value": ""
+		},
+		{
+			"key": "orderSchema",
+			"value": ""
+		},
+		{
+			"key": "numberOfOrders",
+			"value": ""
+		},
+		{
+			"key": "userSchema",
+			"value": ""
+		},
+		{
+			"key": "numberOfUsers",
+			"value": ""
 		}
 	]
 }
