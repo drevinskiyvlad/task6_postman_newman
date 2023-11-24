@@ -37,7 +37,7 @@ jobs:
       - name: Run POSTMAN collection
         continue-on-error: true
         run: |
-          npx newman run petstore.collection.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme
+          npx newman run petstore.collection.json -r htmlextra --reporter-htmlextra-export testResults/index.html --reporter-htmlextra-darkTheme
       
 
       # Upload the contents of Test Results directory to workspace
